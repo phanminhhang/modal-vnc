@@ -48,6 +48,16 @@ IDLE_TIMEOUT_SECONDS = 1800   # 30 phut khong hoat dong -> tu dong tat
 
 image = (
     modal.Image.from_registry("ubuntu:22.04")
+    .run_commands(
+        "export DEBIAN_FRONTEND=noninteractive",
+        "echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections",
+        "echo 'keyboard-configuration keyboard-configuration/layout select English (US)' | debconf-set-selections",
+        "echo 'keyboard-configuration keyboard-configuration/layoutcode select us' | debconf-set-selections",
+        "echo 'keyboard-configuration keyboard-configuration/variant select English (US)' | debconf-set-selections",
+        "echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections",
+        "echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections",
+    )
+    .env({"DEBIAN_FRONTEND": "noninteractive", "DEBCONF_NONINTERACTIVE_SEEN": "true"})
     .apt_install(
         "wget", "curl", "sudo", "gnupg2", "lsb-release",
         "xvfb", "xfce4", "xfce4-terminal", "dbus-x11",
@@ -78,13 +88,15 @@ image = (
     )
     .run_commands(
         "wget -q https://github.com/LizardByte/Sunshine/releases/latest/download/sunshine-ubuntu-22.04-amd64.deb -O /tmp/sunshine.deb",
-        "apt-get install -y -f /tmp/sunshine.deb || true",
+        "DEBIAN_FRONTEND=noninteractive apt-get install -y -f /tmp/sunshine.deb || true",
         "rm -f /tmp/sunshine.deb",
     )
     .run_commands(
         "wget -q https://cdn.cloudflare.steamstatic.com/client/installer/steam.deb -O /tmp/steam.deb",
+        "echo 'steam steam/question select I AGREE' | debconf-set-selections",
+        "echo 'steam steam/license note ' | debconf-set-selections",
         "dpkg -i /tmp/steam.deb || true",
-        "apt-get install -y -f || true",
+        "DEBIAN_FRONTEND=noninteractive apt-get install -y -f || true",
         "rm -f /tmp/steam.deb",
     )
 )
